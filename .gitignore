@@ -1,0 +1,47 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# =========================
+# Flask
+# =========================
+instance/
+*.log
+
+# =========================
+# Uploaded files
+# =========================
+uploads/*
+!uploads/.gitkeep
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# =========================
+# Testing / Coverage
+# =========================
+.coverage
+htmlcov/
+
+# =========================
+# Misc
+# =========================
+*.sqlite3
