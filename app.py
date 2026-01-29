@@ -2,7 +2,7 @@ import os
 import string
 import random
 import time
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = "uploads"
@@ -16,8 +16,8 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
 @app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+def index():
+    return render_template("index.html")
 
 
 def allowed_file(filename):

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DropCode</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>DropCode 📦</h1>
+      <p>Upload an image and get a code to download it.</p>
+      <div id="upload-section">
+        <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+          <div>
+            <input
+              type="file"
+              id="upload"
+              name="file"
+              accept="image/png, image/jpg, image/jpeg"
+              required
+            />
+          </div>
+          <button type="submit" id="upload-button">Upload image</button>
+        </form>
+      </div>
+    </div>
+    <div id="result"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
