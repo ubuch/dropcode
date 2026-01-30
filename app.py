@@ -2,7 +2,7 @@ import os
 import string
 import random
 import time
-from flask import Flask, request, jsonify, send_file, render_template
+from flask import Flask, request, jsonify, send_file, render_template, make_response
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = "uploads"
@@ -62,8 +62,13 @@ def upload():
     return jsonify({"code": code}), 201
 
 
+@app.route("/download")
+def download():
+    return render_template("download.html")
+
+
 @app.route("/download/<code>")
-def download(code):
+def return_image(code):
     if code not in codes:
         return jsonify(error="Invalid code"), 404
 
@@ -71,7 +76,9 @@ def download(code):
     filepath = file_info["path"]
     original_name = file_info["original_name"]
 
-    return send_file(filepath, as_attachment=True, download_name=original_name)
+    response = make_response(send_file(filepath, as_attachment=False))
+    response.headers["X-Filename"] = original_name
+    return response
 
 
 if __name__ == "__main__":

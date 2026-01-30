@@ -1,51 +1,101 @@
-const form = document.getElementById("upload-form");
-const resultDiv = document.getElementById("result");
-const uploadButton = document.getElementById("upload-button");
+// =====================
+// UPLOAD
+// =====================
+const uploadForm = document.getElementById("upload-form");
 
+if (uploadForm) {
+    const uploadResultDiv = document.getElementById("result");
+    const uploadButton = document.getElementById("upload-button");
 
-form.addEventListener("submit", async (event) => {
-    event.preventDefault(); // prevents the page from reloading
-    
-    uploadButton.disabled = true;
-    uploadButton.textContent = "Uploading";
+    uploadForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-    const fileInput = document.getElementById("upload");
+        uploadButton.disabled = true;
+        uploadButton.textContent = "Uploading";
 
-    if (fileInput.files.length === 0) {
-        resultDiv.textContent = "Select a file";
-        uploadButton.disabled = false;
-        uploadButton.textContent = "Upload";
-        return;
-    }
+        const fileInput = document.getElementById("upload");
 
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    try {
-        const response = await fetch("/upload", {
-            method: "POST",
-            body: formData,
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            resultDiv.textContent = errorData.error || "Error uploading file";
+        if (fileInput.files.length === 0) {
+            uploadResultDiv.textContent = "Select a file";
+            uploadButton.disabled = false;
+            uploadButton.textContent = "Upload";
             return;
         }
 
-        const data = await response.json();
-        const code = data.code;
-        
-        document.getElementById("upload-section").style.display = "none";
-        
-        resultDiv.innerHTML = `
-            <p>Your code is:</p>
-            <h2>${code}</h2>
-        `;
-    } catch (error) {
-        resultDiv.textContent = "Network error. Please try again.";
-    } finally {
-        uploadButton.disabled = false;
-        uploadButton.textContent = "Upload";
-    }
-});
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        try {
+            const response = await fetch("/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                uploadResultDiv.textContent =
+                errorData.error || "Error uploading file";
+                return;
+            }
+
+            const data = await response.json();
+            const code = data.code;
+
+            document.getElementById("upload-section").style.display = "none";
+
+            uploadResultDiv.innerHTML = `
+                <p>Your code is:</p>
+                <h2>${code}</h2>
+            `;
+        } catch (error) {
+            uploadResultDiv.textContent = "Network error. Please try again.";
+        }
+    });
+}
+
+// =====================
+// DOWNLOAD
+// =====================
+const downloadForm = document.getElementById("download-form");
+
+if (downloadForm) {
+    const resultDiv = document.getElementById("result");
+    const previewSection = document.getElementById("preview-section");
+    const previewImage = document.getElementById("preview-image");
+    const downloadLink = document.getElementById("download-link");
+    const downloadSection = document.getElementById("download-section");
+
+    downloadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const code = document.getElementById("code-input").value.trim();
+        if (!code) return;
+
+        resultDiv.textContent = "Fetching image...";
+
+        try {
+            const response = await fetch(`/download/${code}`);
+
+            if (!response.ok) {
+                resultDiv.textContent = "Invalid code";
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            const filename = response.headers.get("X-Filename") || "image.png";
+
+            downloadSection.style.display = "none";
+            previewSection.style.display = "block";
+
+            previewImage.src = url;
+            downloadLink.href = url;
+            downloadLink.download = filename;
+
+            resultDiv.textContent = "";
+        } catch (err) {
+            resultDiv.textContent = "Something went wrong";
+        }
+    });
+}
