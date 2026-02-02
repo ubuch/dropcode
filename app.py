@@ -11,6 +11,7 @@ QR_FOLDER = "qrs"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 CODE_LENGTH = 6
 LIFE_TIME_SECONDS = 10 * 60
+DELETE_AFTER_SECONDS = 15 * 60
 
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -20,7 +21,7 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
-def delete_expired_files():
+def server_cleanup():
     now = time.time()
     for folder in (UPLOAD_FOLDER, QR_FOLDER):
         for filename in os.listdir(folder):
@@ -36,7 +37,7 @@ def delete_expired_files():
                 os.remove(path)
 
 
-delete_expired_files()
+server_cleanup()
 
 codes = {}
 
@@ -98,6 +99,7 @@ def upload():
         "original_name": original_name,
         "created_at": created_at,
         "expires_at": created_at + LIFE_TIME_SECONDS,
+        "status": "active",  # active / expired
     }
 
     return (
@@ -119,10 +121,16 @@ def download():
 
 
 def validate_code(code):
-    if code not in codes:
+    info = codes.get(code)
+
+    if info is None:
         return jsonify(error="Invalid code"), 404
 
-    if codes[code]["expires_at"] < time.time():
+    if info["status"] == "expired":
+        return jsonify(error="Code expired"), 410
+
+    if info["expires_at"] < time.time():
+        info["status"] = "expired"
         return jsonify(error="Code expired"), 410
 
     return None
@@ -155,11 +163,12 @@ def get_qr_code(code):
 def delete_expired_codes():
     now = time.time()
     for code, file_info in list(codes.items()):
-        if file_info["expires_at"] < now:
+        if file_info["status"] == "expired":
             if os.path.exists(file_info["path"]):
                 os.remove(file_info["path"])
             if os.path.exists(file_info["qr_path"]):
                 os.remove(file_info["qr_path"])
+        if now - file_info["expires_at"] > DELETE_AFTER_SECONDS:
             del codes[code]
 
 
