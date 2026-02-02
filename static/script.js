@@ -6,7 +6,7 @@ const uploadForm = document.getElementById("upload-form");
 if (uploadForm) {
     const uploadResultDiv = document.getElementById("result");
     const uploadButton = document.getElementById("upload-button");
-    
+    const fileInput = document.getElementById("upload");
     const uploadSection = document.getElementById("upload-section");
     const uploadResultSection = document.getElementById("upload-result");
     const codeText = document.getElementById("code-text");
@@ -17,8 +17,6 @@ if (uploadForm) {
 
         uploadButton.disabled = true;
         uploadButton.textContent = "Uploading";
-
-        const fileInput = document.getElementById("upload");
 
         if (fileInput.files.length === 0) {
             uploadResultDiv.textContent = "Select a file";
