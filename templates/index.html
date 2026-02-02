@@ -24,6 +24,17 @@
           <button type="submit" id="upload-button">Upload image</button>
         </form>
       </div>
+
+      <div id="upload-result" style="display: none;">
+        <p>Your code is:</p>
+        <h2 id="code-text"></h2>
+
+        <p>Or scan this QR code:</p>
+        <img id="qr-image" alt="QR code" />
+
+        <p class="expiration-note">⚠️ This code is valid for 10 minutes</p>
+      </div>
+
     </div>
     <div id="result"></div>
 
