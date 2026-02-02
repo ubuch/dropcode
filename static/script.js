@@ -6,6 +6,11 @@ const uploadForm = document.getElementById("upload-form");
 if (uploadForm) {
     const uploadResultDiv = document.getElementById("result");
     const uploadButton = document.getElementById("upload-button");
+    
+    const uploadSection = document.getElementById("upload-section");
+    const uploadResultSection = document.getElementById("upload-result");
+    const codeText = document.getElementById("code-text");
+    const qrImage = document.getElementById("qr-image");
 
     uploadForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -18,7 +23,7 @@ if (uploadForm) {
         if (fileInput.files.length === 0) {
             uploadResultDiv.textContent = "Select a file";
             uploadButton.disabled = false;
-            uploadButton.textContent = "Upload";
+            uploadButton.textContent = "Upload image";
             return;
         }
 
@@ -34,21 +39,26 @@ if (uploadForm) {
             if (!response.ok) {
                 const errorData = await response.json();
                 uploadResultDiv.textContent =
-                errorData.error || "Error uploading file";
+                    errorData.error || "Error uploading file";
                 return;
             }
 
             const data = await response.json();
             const code = data.code;
+            const qrUrl = data.qr_url || `/qr/${code}`;
 
-            document.getElementById("upload-section").style.display = "none";
+            uploadSection.style.display = "none";
+            uploadResultSection.style.display = "block";
 
-            uploadResultDiv.innerHTML = `
-                <p>Your code is:</p>
-                <h2>${code}</h2>
-            `;
+            codeText.textContent = code;
+            qrImage.src = qrUrl;
+
+            uploadResultDiv.textContent = "";
         } catch (error) {
             uploadResultDiv.textContent = "Network error. Please try again.";
+        } finally {
+            uploadButton.disables = false;
+            uploadButton.textContent = "Upload image";
         }
     });
 }

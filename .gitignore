@@ -21,7 +21,9 @@ instance/
 # Uploaded files
 # =========================
 uploads/*
+qrs/*
 !uploads/.gitkeep
+!qrs/.gitkeep
 
 # =========================
 # OS / Editor
