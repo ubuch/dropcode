@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.pyc
 
 # Virtual environments
 venv/
@@ -24,6 +25,11 @@ uploads/*
 qrs/*
 !uploads/.gitkeep
 !qrs/.gitkeep
+
+# =========================
+# Database
+# =========================
+*.db
 
 # =========================
 # OS / Editor
