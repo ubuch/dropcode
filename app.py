@@ -5,16 +5,15 @@ import time
 import qrcode
 from flask import Flask, request, jsonify, send_file, render_template, redirect, url_for
 from werkzeug.utils import secure_filename
-from sqlalchemy import or_
 from database import engine, SessionLocal
 from models import Base, Code, File
+from scheduler import start_scheduler
 
 UPLOAD_FOLDER = "uploads"
 QR_FOLDER = "qrs"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 CODE_LENGTH = 6
 LIFE_TIME_SECONDS = 10 * 60
-DELETE_AFTER_SECONDS = 15 * 60
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,40 +22,6 @@ os.makedirs(QR_FOLDER, exist_ok=True)
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-
-def delete_expired_codes():
-    db = SessionLocal()
-    try:
-        now = time.time()
-
-        expired_codes = (
-            db.query(Code)
-            .filter(or_(Code.status == "expired", Code.expires_at < now))
-            .all()
-        )
-        for code_row in expired_codes:
-            for file in code_row.files:
-                if os.path.exists(file.file_path):
-                    os.remove(file.file_path)
-
-            if os.path.exists(code_row.qr_path):
-                os.remove(code_row.qr_path)
-
-            if now - code_row.expires_at > DELETE_AFTER_SECONDS:
-                db.delete(code_row)
-
-        db.commit()
-    finally:
-        db.close()
-
-
-delete_expired_codes()
-
-
-@app.before_request
-def cleanup():
-    delete_expired_codes()
 
 
 @app.route("/")
@@ -230,4 +195,5 @@ def get_qr_code(code):
 
 
 if __name__ == "__main__":
+    start_scheduler()
     app.run(debug=True)
