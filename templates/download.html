@@ -15,27 +15,15 @@
         <form action="/download" method="get" id="download-form">
           <input
             type="text"
-            id="code-input"
             name="code"
             placeholder="Enter your code"
             required
           />
-          <button type="submit" id="download-button">Get image</button>
+          <button type="submit">View photos</button>
         </form>
       </div>
 
-      <div id="preview-section" style="display: none;">
-        <img id="preview-image" />
-        <br />
-        <a id="download-link" download>
-            <button>Download image</button>
-        </a>
-      </div>
-
-      <div id="result"></div>
-      
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
 </html>

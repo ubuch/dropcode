@@ -3,11 +3,11 @@ import string
 import random
 import time
 import qrcode
-from flask import Flask, request, jsonify, send_file, render_template, make_response
+from flask import Flask, request, jsonify, send_file, render_template, redirect, url_for
 from werkzeug.utils import secure_filename
 from sqlalchemy import or_
 from database import engine, SessionLocal
-from models import Base, Code
+from models import Base, Code, File
 
 UPLOAD_FOLDER = "uploads"
 QR_FOLDER = "qrs"
@@ -30,16 +30,19 @@ def delete_expired_codes():
     try:
         now = time.time()
 
-        expired = (
+        expired_codes = (
             db.query(Code)
             .filter(or_(Code.status == "expired", Code.expires_at < now))
             .all()
         )
-        for code_row in expired:
-            if os.path.exists(code_row.file_path):
-                os.remove(code_row.file_path)
+        for code_row in expired_codes:
+            for file in code_row.files:
+                if os.path.exists(file.file_path):
+                    os.remove(file.file_path)
+
             if os.path.exists(code_row.qr_path):
                 os.remove(code_row.qr_path)
+
             if now - code_row.expires_at > DELETE_AFTER_SECONDS:
                 db.delete(code_row)
 
@@ -48,8 +51,7 @@ def delete_expired_codes():
         db.close()
 
 
-with SessionLocal() as db:
-    delete_expired_codes()
+delete_expired_codes()
 
 
 @app.before_request
@@ -77,48 +79,54 @@ def generate_qr_code(code):
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    if "file" not in request.files:
-        return jsonify(error="No file part"), 400
+    if "files" not in request.files:
+        return jsonify(error="No files"), 400
 
-    file = request.files["file"]
+    files = request.files.getlist("files")
 
-    if file.filename == "":
-        return jsonify(error="No selected file"), 400
-
-    if not allowed_file(file.filename):
-        return jsonify(error="Invalid file type"), 400
+    if not files:
+        return jsonify(error="No files"), 400
 
     db = SessionLocal()
     try:
-
         code = generate_code()
 
-        while db.query(Code).filter(Code.code == code).first() is not None:
+        while db.query(Code).filter(Code.code == code).first():
             code = generate_code()
+
+        created_at = time.time()
+        expires_at = created_at + LIFE_TIME_SECONDS
 
         qr_image = generate_qr_code(code)
         qr_path = os.path.join(QR_FOLDER, f"{code}.png")
         qr_image.save(qr_path)
 
-        original_name = secure_filename(file.filename)
-        filename = f"{code}_{original_name}"
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(filepath)
-
-        created_at = time.time()
-        expires_at = created_at + LIFE_TIME_SECONDS
-
         code_row = Code(
             code=code,
-            file_path=filepath,
             qr_path=qr_path,
-            original_name=original_name,
             created_at=created_at,
             expires_at=expires_at,
             status="active",
         )
 
         db.add(code_row)
+
+        for file in files:
+            if not allowed_file(file.filename):
+                continue
+
+            original_name = secure_filename(file.filename)
+            filename = f"{code}_{original_name}"
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+
+            file_row = File(
+                code=code,
+                file_path=filepath,
+                original_name=original_name,
+            )
+            db.add(file_row)
+
         db.commit()
 
         return (
@@ -138,51 +146,87 @@ def upload():
 
 @app.route("/download")
 def download():
+    code = request.args.get("code")
+
+    if code:
+        return redirect(url_for("download_page", code=code))
+
     return render_template("download.html")
 
 
-def validate_code(code):
+def validate_code(db, code):
+    code_row = db.query(Code).filter(Code.code == code).first()
+
+    if not code_row:
+        return None, ("Invalid code", 404)
+
+    if code_row.status == "expired":
+        return None, ("Code expired", 410)
+
+    if code_row.expires_at < time.time():
+        code_row.status = "expired"
+        db.commit()
+        return None, ("Code expired", 410)
+
+    return code_row, None
+
+
+@app.route("/download/<code>")
+def download_page(code):
     db = SessionLocal()
     try:
-        code_row = db.query(Code).filter(Code.code == code).first()
+        code_row, error = validate_code(db, code)
+        if error:
+            msg, status = error
+            return jsonify(error=msg), status
 
-        if not code_row:
-            return None, ("Invalid code", 404)
-
-        if code_row.status == "expired":
-            return None, ("Code expired", 410)
-
-        if code_row.expires_at < time.time():
-            code_row.status = "expired"
-            db.commit()
-            return None, ("Code expired", 410)
-
-        return code_row, None
+        return render_template("gallery.html", files=code_row.files, code=code)
     finally:
         db.close()
 
 
-@app.route("/download/<code>")
-def get_image(code):
-    code_row, error = validate_code(code)
-    if error:
-        msg, status = error
-        return jsonify(error=msg), status
+@app.route("/file/<int:file_id>/view")
+def view_image(file_id):
+    db = SessionLocal()
+    try:
+        file_row = db.query(File).filter(File.id == file_id).first()
+        if not file_row:
+            return jsonify(error="File not found"), 404
 
-    response = make_response(send_file(code_row.file_path, as_attachment=False))
-    response.headers["X-Filename"] = code_row.original_name
+        return send_file(file_row.file_path)
+    finally:
+        db.close()
 
-    return response
+
+@app.route("/file/<int:file_id>/download")
+def download_image(file_id):
+    db = SessionLocal()
+    try:
+        file_row = db.query(File).filter(File.id == file_id).first()
+        if not file_row:
+            return jsonify(error="File not found"), 404
+
+        return send_file(
+            file_row.file_path,
+            as_attachment=True,
+            download_name=file_row.original_name,
+        )
+    finally:
+        db.close()
 
 
 @app.route("/qr/<code>")
 def get_qr_code(code):
-    code_row, error = validate_code(code)
-    if error:
-        msg, status = error
-        return jsonify(error=msg), status
+    db = SessionLocal()
+    try:
+        code_row, error = validate_code(db, code)
+        if error:
+            msg, status = error
+            return jsonify(error=msg), status
 
-    return send_file(code_row.qr_path, mimetype="image/png")
+        return send_file(code_row.qr_path, mimetype="image/png")
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

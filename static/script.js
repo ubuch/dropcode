@@ -25,8 +25,12 @@ if (uploadForm) {
             return;
         }
 
+        const files = fileInput.files;
+
         const formData = new FormData();
-        formData.append("file", fileInput.files[0]);
+        for (const file of files) {
+            formData.append("files", file);
+        }
 
         try {
             const response = await fetch("/upload", {
@@ -64,46 +68,33 @@ if (uploadForm) {
 // =====================
 // DOWNLOAD
 // =====================
-const downloadForm = document.getElementById("download-form");
+// =====================
+// IMAGE MODAL
+// =====================
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("modal-image");
+    const downloadBtn = document.getElementById("download-btn");
 
-if (downloadForm) {
-    const resultDiv = document.getElementById("result");
-    const previewSection = document.getElementById("preview-section");
-    const previewImage = document.getElementById("preview-image");
-    const downloadLink = document.getElementById("download-link");
-    const downloadSection = document.getElementById("download-section");
+    const closeBtn = document.querySelector(".close");
 
-    downloadForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    document.querySelectorAll(".thumb").forEach(img => {
+        img.addEventListener("click", () => {
+            modal.style.display = "flex";
+            modalImg.src = img.dataset.full;
+            downloadBtn.href = `/file/${img.src.split("/")[4]}/download`;
+        });
+    });
 
-        const code = document.getElementById("code-input").value.trim();
-        if (!code) return;
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+        modalImg.src = "";
+    });
 
-        resultDiv.textContent = "Fetching image...";
-
-        try {
-            const response = await fetch(`/download/${code}`);
-
-            if (!response.ok) {
-                resultDiv.textContent = "Invalid code";
-                return;
-            }
-
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-
-            const filename = response.headers.get("X-Filename") || "image.png";
-
-            downloadSection.style.display = "none";
-            previewSection.style.display = "block";
-
-            previewImage.src = url;
-            downloadLink.href = url;
-            downloadLink.download = filename;
-
-            resultDiv.textContent = "";
-        } catch (err) {
-            resultDiv.textContent = "Something went wrong";
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+            modalImg.src = "";
         }
     });
-}
+});
