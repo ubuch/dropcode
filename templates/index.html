@@ -10,6 +10,7 @@
     <div class="container">
       <h1>DropCode 📦</h1>
       <p>Upload an image and get a code to download it.</p>
+      <a href="/download" class="download-page-link">Download with code</a>
       <div id="upload-section">
         <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
           <div class="file-input-wrap">
@@ -40,7 +41,7 @@
       </div>
 
     </div>
-    <div id="result"></div>
+    <div id="result" class="result-message" role="status"></div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>

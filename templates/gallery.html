@@ -1,30 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Photos</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Photos – DropCode</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="gallery-page">
+    <div class="container container--gallery">
+        <a href="/" class="back-link">← Back to DropCode</a>
+        <h2 class="gallery-title">Your photos</h2>
+        <div class="gallery">
+            {% for f in files %}
+                <div class="gallery-item">
+                    <img
+                        src="/file/{{ f.id }}/view"
+                        class="thumb"
+                        data-full="/file/{{ f.id }}/view"
+                        alt="{{ f.original_name }}"
+                    />
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 
-<h2>Your photos</h2>
-<div class="gallery">
-    {% for f in files %}
-        <img
-            src="/file/{{ f.id }}/view"
-            class="thumb"
-            data-full="/file/{{ f.id }}/view"
-            alt="{{ f.original_name }}"
-        />
-    {% endfor %}
-</div>
+    <div id="image-modal" class="modal">
+        <span class="close" aria-label="Close">&times;</span>
+        <img class="modal-content" id="modal-image" alt="">
+        <a id="download-btn" class="download-btn">Download</a>
+    </div>
 
-<div id="image-modal" class="modal">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="modal-image">
-    <a id="download-btn" class="download-btn">Download</a>
-</div>
-
-<script src="/static/script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
