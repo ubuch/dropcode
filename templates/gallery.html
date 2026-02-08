@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Photos</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h2>Your photos</h2>
+<div class="gallery">
+    {% for f in files %}
+        <img
+            src="/file/{{ f.id }}/view"
+            class="thumb"
+            data-full="/file/{{ f.id }}/view"
+            alt="{{ f.original_name }}"
+        />
+    {% endfor %}
+</div>
+
+<div id="image-modal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modal-image">
+    <a id="download-btn" class="download-btn">Download</a>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
