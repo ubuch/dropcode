@@ -1,18 +1,25 @@
+* {
+box-sizing: border-box;
+}
+
 body {
 font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 margin: 0;
-padding: 0;
+padding: 1rem;
 background: #0f172a;
 color: #e5e7eb;
+min-height: 100vh;
 display: flex;
+flex-direction: column;
 align-items: center;
 justify-content: center;
-height: 100vh;
 }
 
 .container {
 text-align: center;
+max-width: 520px;
+width: 100%;
 }
 
 h1 {
@@ -20,9 +27,16 @@ font-size: 2.5rem;
 margin-bottom: 0.5rem;
 }
 
+h2 {
+font-size: 1.5rem;
+font-weight: 600;
+margin: 0.5rem 0 1rem;
+}
+
 p {
 font-size: 1.1rem;
-opacity: 0.8;
+opacity: 0.9;
+margin: 0.5rem 0;
 }
 
 /* Form styles */
@@ -87,53 +101,214 @@ input[type="file"]::file-selector-button:hover {
 background: #475569;
 }
 
-.gallery {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-gap: 10px;
-}
-  
-.thumb {
-width: 100%;
-height: auto;
-cursor: pointer;
-border-radius: 8px;
-object-fit: cover;
+.file-name {
+display: block;
+font-size: 0.9rem;
+color: #94a3b8;
+margin-top: 0.5rem;
 }
 
+/* Upload result (code + QR) */
+#upload-result {
+margin-top: 2rem;
+padding: 1.5rem;
+background: #1e293b;
+border: 1px solid #334155;
+border-radius: 12px;
+text-align: center;
+}
+
+#upload-result p {
+margin: 0.75rem 0;
+}
+
+#code-text {
+font-family: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+font-size: 1.75rem;
+letter-spacing: 0.15em;
+padding: 0.5rem 1rem;
+background: #0f172a;
+border-radius: 8px;
+border: 1px solid #334155;
+display: inline-block;
+margin: 0.25rem 0;
+user-select: all;
+}
+
+#qr-image {
+display: block;
+margin: 1rem auto;
+padding: 0.75rem;
+background: #fff;
+border-radius: 12px;
+max-width: 200px;
+height: auto;
+}
+
+.expiration-note {
+font-size: 0.9rem;
+color: #fbbf24;
+opacity: 1;
+}
+
+.result-message {
+min-height: 1.5rem;
+font-size: 1rem;
+margin-top: 1rem;
+color: #f87171;
+text-align: center;
+}
+
+.result-message:empty {
+visibility: hidden;
+}
+
+/* Gallery page */
+body.gallery-page {
+justify-content: flex-start;
+padding: 1.25rem;
+}
+
+.container--gallery {
+max-width: 1200px;
+text-align: left;
+}
+
+.back-link {
+display: inline-block;
+margin-bottom: 1.25rem;
+font-size: 0.95rem;
+color: #94a3b8;
+text-decoration: none;
+transition: color 0.2s;
+}
+
+.back-link:hover {
+color: #e5e7eb;
+}
+
+.gallery-title {
+font-size: 1.75rem;
+margin-bottom: 1.25rem;
+font-weight: 600;
+}
+
+.gallery {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 1rem;
+list-style: none;
+margin: 0;
+padding: 0;
+}
+
+@media (min-width: 480px) {
+.gallery {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+}
+
+@media (min-width: 768px) {
+.gallery {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+}
+
+@media (min-width: 1024px) {
+.gallery {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.5rem;
+}
+}
+
+.gallery-item {
+position: relative;
+border-radius: 12px;
+overflow: hidden;
+background: #1e293b;
+border: 1px solid #334155;
+aspect-ratio: 1;
+transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gallery-item:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.thumb {
+width: 100%;
+height: 100%;
+cursor: pointer;
+object-fit: cover;
+display: block;
+transition: opacity 0.2s;
+}
+
+.gallery-item:hover .thumb {
+opacity: 0.95;
+}
+
+/* Modal */
 .modal {
 display: none;
 position: fixed;
 z-index: 9999;
 inset: 0;
-background: rgba(0, 0, 0, 0.9);
+background: rgba(0, 0, 0, 0.92);
 align-items: center;
 justify-content: center;
+padding: 2rem;
+flex-direction: column;
 }
 
 .modal-content {
-max-width: 95%;
-max-height: 95%;
+max-width: 95vw;
+max-height: 85vh;
+width: auto;
+height: auto;
+object-fit: contain;
+border-radius: 8px;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .download-btn {
 position: absolute;
 bottom: 24px;
-background: white;
-color: black;
-padding: 12px 20px;
+left: 50%;
+transform: translateX(-50%);
+background: #fff;
+color: #0f172a;
+padding: 12px 24px;
 border-radius: 24px;
 text-decoration: none;
-font-weight: bold;
+font-weight: 600;
+font-size: 1rem;
+transition: background 0.2s, color 0.2s;
+}
+
+.download-btn:hover {
+background: #e5e7eb;
+color: #0f172a;
 }
 
 .close {
 position: absolute;
-top: 16px;
-right: 20px;
-font-size: 32px;
-color: white;
+top: 20px;
+right: 24px;
+font-size: 2rem;
+color: #fff;
 cursor: pointer;
+line-height: 1;
+padding: 0.25rem;
+opacity: 0.9;
+transition: opacity 0.2s;
+}
+
+.close:hover {
+opacity: 1;
 }
   
 
@@ -155,6 +330,27 @@ transition: background 0.2s, border-color 0.2s;
 #upload-button:hover,
 #download-button:hover,
 #preview-section button:hover {
+background: #475569;
+border-color: #64748b;
+}
+
+.download-page-link {
+display: inline-block;
+margin-bottom: 1rem;
+font-family: inherit;
+font-size: 1rem;
+font-weight: 500;
+padding: 0.625rem 1.25rem;
+background: #334155;
+border: 1px solid #475569;
+border-radius: 8px;
+color: #e5e7eb;
+text-decoration: none;
+cursor: pointer;
+transition: background 0.2s, border-color 0.2s;
+}
+
+.download-page-link:hover {
 background: #475569;
 border-color: #64748b;
 }
